@@ -1,0 +1,100 @@
+create database enrollments;
+use enrollments;
+
+CREATE TABLE student(
+regno VARCHAR(15),
+name VARCHAR(20),
+major VARCHAR(20),
+bdate DATE,
+PRIMARY KEY (regno)  );
+
+CREATE TABLE course(
+courseno INT,
+cname VARCHAR(20),
+dept VARCHAR(20),
+PRIMARY KEY (courseno) );
+
+CREATE TABLE enroll(
+regno VARCHAR(15),
+courseno INT,
+sem INT,
+marks INT,
+PRIMARY KEY (regno,courseno),
+FOREIGN KEY (regno) REFERENCES student (regno),
+FOREIGN KEY (courseno) REFERENCES course (courseno) on delete cascade );
+
+
+CREATE TABLE text(
+book_isbn INT,
+book_title VARCHAR(20),
+publisher VARCHAR(20),
+author VARCHAR(20),
+PRIMARY KEY (book_isbn) );
+CREATE TABLE book_adoptions(
+courseno INT,
+sem INT(3),
+book_isbn INT(5),
+PRIMARY KEY (courseno),
+FOREIGN KEY (courseno) REFERENCES course (courseno),
+FOREIGN KEY (book_isbn) REFERENCES text(book_isbn) );
+
+ insert into student values('CS01',' RAM ','DS',' 86-03-12'),
+('IS02 ','SMITH','USP',' 87-12-23'),
+('EC03 ','AHMED ','SNS ','85-04-17'),
+('CS03 ','SNEHA',' DBMS',' 87-01-01'),
+('TC05 ','AKHILA ','EC ','86-10-06');
+select* FROM student;
+
+insert into course values(11 ,'DS','CS'),
+(22, 'USP',' IS'),
+(33 ,'SNS',' EC'),
+(44 ,'DBMS',' CS'),
+(55 ,'EC',' TC');
+select* FROM course;
+insert into enroll values('CS01',11 ,4 ,85),
+('IS02 ',22,6 ,80),
+('EC03 ',33 ,2 ,80),
+('CS03 ',44 ,6 ,75),
+('TC05 ',55 ,2 ,8);
+select* FROM enroll;
+
+insert into text values(1 ,'DS and C',' Princeton',' Padma Reddy'),
+(2 ,'Fundamentals of DS ','Princeton ','Godse'),
+(3 ,'Fundamentals of DBMS',' Princeton',' Navathe'),
+(4 ,'SQL ','Princeton',' Foley'),
+(5,' Electronic circuits','TMH','Elmasri'),
+(6 ,'Adv unix prog ','TMH ','Stevens');
+select* FROM text;
+insert into book_adoption values(11 ,4 ,1),
+(44 ,6, 4),
+(55 ,2 ,5),
+(22, 6 ,6);
+select* FROM book_adoption;
+insert into text values(7,'DS and C++','Princeton','Bharath');
+
+
+insert into book_adoption values(33,4,3);
+SELECT c.courseno,t.book_isbn,t.book_title
+FROM course c,book_adoption ba,text t
+WHERE c.courseno=ba.courseno
+AND ba.book_isbn=t.book_isbn
+AND c.dept="IS"
+AND 2<(
+SELECT COUNT(book_isbn)
+FROM book_adoption b
+WHERE c.courseno=b.courseno)
+ORDER BY t.book_title;
+SELECT DISTINCT c.dept
+FROM course c
+WHERE c.dept IN
+( SELECT c.dept
+FROM course c,book_adoption b,text t
+WHERE c.courseno=b.courseno
+AND t.book_isbn=b.book_isbn
+AND t.publisher="TMH")
+AND c.dept NOT IN
+(SELECT c.dept
+FROM course c,book_adoption b,text t
+WHERE c.courseno=b.courseno
+AND t.book_isbn=b.book_isbn
+AND t.publisher != "TMH");
