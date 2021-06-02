@@ -1,0 +1,52 @@
+create database pizzaz;
+use pizzaz;
+create table Pizza(pid int, pname varchar(20), quality int, Address varchar(20),primary key(pid));
+create table Store(SID int,sname varchar(20), phone varchar(20),Qualityrating varchar(20),primary key(SID) );
+create table Soldby(pid int,sid int ,Price float,foreign key(pid) references pizza(pid) on delete cascade,
+foreign key(SID) references store(SID)on delete cascade);
+show tables;
+insert into pizza values(1001,'cheese',90 ,'JP NAGAR'),
+(1002,'cheese',20, 'NAGARBHAVI'),
+(1003,'Greek',80, 'BASVANAGUDI'),
+(1004,'Veggie',40,'RT NAGAR'),
+(1005, 'Veggie',50,'VIJAYNAGAR');
+select * from pizza;
+insert into store values(100,'dominos','9990123456','good'),
+(200,'pizza hut','9807654312', 'bad'),
+(300,'onesta','7789034567', 'good'),
+(400,'brik oven','9987654321','excellent'),
+(500, 'hot pizza','8907654321','good');
+select * from store;
+insert into soldby values(1001,200,100.00),
+(1002,300,150.00),
+(1003,500,250.00),
+(1004,100,90.00),
+(1005,400,99.00),
+(1002,300,100.00),
+(1004,300,200.00);
+select * from soldby;
+-- 3) Find the names of all stores that sell both veggie and cheese pizzas.
+select s.sname
+from store s
+where s.sid in (select b.sid from soldby b where b.pid IN ( Select p.pid from pizza p WHERE p.pname='Veggie' or p.pname='cheese'));
+-- 4) Find the name and phone numbers of all stores that sell Good or excellent veggie pizza under $100.
+select s.sname,s.phone 
+from store s,pizza p,soldby b
+where p.pname='Veggie' and p.pid=b.pid and b.price<100.00 and b.sid=s.sid and (qualityrating='good' or qualityrating='excellent');
+-- 5)Demonstrate how you update the price of a vegcheese pizza by 10%
+UPDATE soldby 
+   SET price=price*1.1
+ WHERE pid IN (SELECT p.pid 
+                    FROM pizza p
+                    WHERE p.pname='Veggie');
+-- 6)List the stores whose average price for pizza is higher than the overall average prize.
+select s.sname,b.price
+from store s,soldby b
+group by B.sid
+having avg(b.price)> (select avg(price) from soldby);
+-- 7)Create a View which contains(Pname,Totalprice,Avgprice) for each pizza sold
+CREATE VIEW reviews AS
+select p.pname,sum(b.price) as total_price,avg(price)
+from store s,pizza p,soldby b
+group by b.pid;
+commit;
